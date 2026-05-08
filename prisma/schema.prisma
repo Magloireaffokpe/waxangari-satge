@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Sexe {
+  MASCULIN
+  FEMININ
+  AUTRE
+}
+
+enum TypeStage {
+  ACADEMIQUE
+  PROFESSIONNEL
+}
+
+enum StatutAvancement {
+  EN_COURS
+  TERMINE
+}
+
+model Stagiaire {
+  id                 Int              @id @default(autoincrement())
+  nom                String
+  prenom             String
+  email              String           @unique
+  telephone          String?
+  sexe               Sexe             @default(AUTRE)
+  dateNaissance      DateTime?
+  lieuProvenance     String
+  ecoleUniversite    String
+  filiere            String
+  niveauEtude        String?
+  typeStage          TypeStage
+  dureeMois          Int
+  dateDebut          DateTime
+  dateFin            DateTime
+  objetStage         String
+  cvUrl              String?
+  statutAvancement   StatutAvancement @default(EN_COURS)
+  commentaireInterne String?
+  dateInscription    DateTime         @default(now())
+  dateFinReelle      DateTime?
+  logs               AdminLog[]
+}
+
+model Admin {
+  id        Int        @id @default(autoincrement())
+  email     String     @unique
+  name      String
+  password  String
+  isSuperAdmin Boolean @default(false)
+  createdAt DateTime   @default(now())
+  lastLogin DateTime?
+  logs      AdminLog[]
+}
+
+model AdminLog {
+  id          Int       @id @default(autoincrement())
+  adminId     Int
+  action      String
+  stagiaireId Int?
+  details     Json?
+  createdAt   DateTime  @default(now())
+  admin       Admin     @relation(fields: [adminId], references: [id])
+  stagiaire   Stagiaire? @relation(fields: [stagiaireId], references: [id])
+}
