@@ -32,7 +32,7 @@ export function WaxangariLogo({
       )}
     >
       <Image
-        src="/logo.jpeg"
+        src="/logo.png"
         alt="Waxangari Labs"
         width={w}
         height={h}

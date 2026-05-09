@@ -200,7 +200,7 @@ export default function FormulaireInscription() {
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="text-center max-w-md"
+          className="text-center max-w-md px-4"
         >
           <motion.div
             initial={{ scale: 0 }}
@@ -208,37 +208,39 @@ export default function FormulaireInscription() {
             transition={{ delay: 0.3, type: "spring" }}
           >
             <CheckCircle2
-              className="h-24 w-24 mx-auto mb-6"
+              className="h-20 w-20 sm:h-24 sm:w-24 mx-auto mb-6"
               style={{ color: "#4CAF18" }}
             />
           </motion.div>
-          <h2 className="font-display text-4xl mb-4">Inscription envoyée !</h2>
-          <p className="text-muted-foreground mb-8">
+          <h2 className="font-display text-3xl sm:text-4xl mb-4">
+            Inscription envoyée !
+          </h2>
+          <p className="text-muted-foreground mb-8 text-sm sm:text-base">
             Notre équipe examinera votre dossier et vous contactera très
             prochainement.
           </p>
-          <WaxangariLogo className="justify-center mx-auto" size="lg" />
+          <WaxangariLogo className="mx-auto" size="lg" />
         </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background py-8 px-4">
+    <div className="min-h-screen bg-background py-6 sm:py-8 px-4">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-8">
-          <WaxangariLogo className="mx-auto" size="lg" />
-          <h1 className="font-display text-3xl md:text-4xl mb-2">
+        <div className="text-center mb-6 sm:mb-8">
+          <WaxangariLogo className="mx-auto mb-4 sm:mb-6" size="md" />
+          <h1 className="font-display text-2xl sm:text-3xl md:text-4xl mb-2">
             Formulaire d&apos;inscription
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-sm sm:text-base">
             Rejoignez notre programme de stage en quelques étapes
           </p>
         </div>
 
         {/* Stepper */}
-        <div className="flex items-center mb-10">
+        <div className="flex items-center mb-8 sm:mb-10">
           {steps.map((s, i) => {
             const Icon = s.icon;
             const active = i === step;
@@ -255,7 +257,7 @@ export default function FormulaireInscription() {
                   )}
                   <div className="flex flex-col items-center gap-1">
                     <div
-                      className={`h-10 w-10 rounded-full flex items-center justify-center transition-all duration-300 border-2 ${
+                      className={`h-9 w-9 sm:h-10 sm:w-10 rounded-full flex items-center justify-center transition-all duration-300 border-2 ${
                         active
                           ? "border-primary bg-primary text-white shadow-lg shadow-primary/30 scale-110"
                           : done
@@ -264,13 +266,13 @@ export default function FormulaireInscription() {
                       }`}
                     >
                       {done ? (
-                        <CheckCircle2 className="h-5 w-5" />
+                        <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5" />
                       ) : (
-                        <Icon className="h-4 w-4" />
+                        <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       )}
                     </div>
                     <span
-                      className={`text-xs font-medium hidden sm:block ${active ? "text-primary" : done ? "text-secondary" : "text-muted-foreground"}`}
+                      className={`text-[10px] sm:text-xs font-medium hidden sm:block ${active ? "text-primary" : done ? "text-secondary" : "text-muted-foreground"}`}
                     >
                       {s.label}
                     </span>
@@ -282,7 +284,7 @@ export default function FormulaireInscription() {
         </div>
 
         {/* Form Card */}
-        <div className="rounded-2xl border border-border bg-card shadow-sm p-6 md:p-8">
+        <div className="rounded-2xl border border-border bg-card shadow-sm p-4 sm:p-6 md:p-8">
           <AnimatePresence mode="wait">
             <motion.div
               key={step}
@@ -291,12 +293,12 @@ export default function FormulaireInscription() {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.3 }}
             >
-              {/* Step 0: Identité */}
+              {/* Step 0 */}
               {step === 0 && (
-                <div className="space-y-5">
-                  <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-                    <User className="h-5 w-5 text-primary" /> Informations
-                    personnelles
+                <div className="space-y-4 sm:space-y-5">
+                  <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 flex items-center gap-2">
+                    <User className="h-5 w-5 text-primary shrink-0" />{" "}
+                    Informations personnelles
                   </h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
@@ -397,12 +399,12 @@ export default function FormulaireInscription() {
                 </div>
               )}
 
-              {/* Step 1: Stage */}
+              {/* Step 1 */}
               {step === 1 && (
-                <div className="space-y-5">
-                  <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-                    <BookOpen className="h-5 w-5 text-primary" /> Informations
-                    sur le stage
+                <div className="space-y-4 sm:space-y-5">
+                  <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 flex items-center gap-2">
+                    <BookOpen className="h-5 w-5 text-primary shrink-0" />{" "}
+                    Informations sur le stage
                   </h2>
                   <div>
                     <Label>École / Université *</Label>
@@ -510,16 +512,12 @@ export default function FormulaireInscription() {
                   </div>
                   <div>
                     <Label>Objet du stage *</Label>
-
                     <Textarea
                       {...register("objetStage")}
-                      placeholder={`Décrivez brièvement l'objet de votre stage...
-
-Ex : Stage en développement web`}
+                      placeholder="Décrivez brièvement l'objet de votre stage..."
                       className="mt-1.5"
                       rows={4}
                     />
-
                     {errors.objetStage && (
                       <p className="text-destructive text-xs mt-1">
                         {errors.objetStage.message}
@@ -529,15 +527,15 @@ Ex : Stage en développement web`}
                 </div>
               )}
 
-              {/* Step 2: CV */}
+              {/* Step 2 */}
               {step === 2 && (
                 <div className="space-y-6">
-                  <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-                    <Upload className="h-5 w-5 text-primary" /> Upload de votre
-                    CV
+                  <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 flex items-center gap-2">
+                    <Upload className="h-5 w-5 text-primary shrink-0" /> Upload
+                    de votre CV
                   </h2>
                   <label
-                    className={`block cursor-pointer rounded-2xl border-2 border-dashed p-12 text-center transition-all duration-200 hover:border-primary/60 hover:bg-primary/5 ${cvFile ? "border-secondary bg-secondary/5" : "border-border"}`}
+                    className={`block cursor-pointer rounded-2xl border-2 border-dashed p-8 sm:p-12 text-center transition-all duration-200 hover:border-primary/60 hover:bg-primary/5 ${cvFile ? "border-secondary bg-secondary/5" : "border-border"}`}
                   >
                     <input
                       type="file"
@@ -548,10 +546,10 @@ Ex : Stage en développement web`}
                     {cvFile ? (
                       <div className="flex flex-col items-center gap-3">
                         <FileText
-                          className="h-12 w-12"
+                          className="h-10 w-10 sm:h-12 sm:w-12"
                           style={{ color: "#4CAF18" }}
                         />
-                        <p className="font-semibold text-foreground">
+                        <p className="font-semibold text-foreground text-sm sm:text-base">
                           {cvPreview}
                         </p>
                         <p className="text-sm text-muted-foreground">
@@ -571,31 +569,31 @@ Ex : Stage en développement web`}
                       </div>
                     ) : (
                       <div className="flex flex-col items-center gap-3">
-                        <Upload className="h-12 w-12 text-muted-foreground" />
-                        <p className="font-semibold">
+                        <Upload className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground" />
+                        <p className="font-semibold text-sm sm:text-base">
                           Glissez votre CV ici ou cliquez
                         </p>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xs sm:text-sm text-muted-foreground">
                           PDF, DOC, DOCX · Max 5 Mo
                         </p>
                       </div>
                     )}
                   </label>
-                  <p className="text-sm text-muted-foreground text-center">
+                  <p className="text-xs sm:text-sm text-muted-foreground text-center">
                     Le CV est optionnel mais recommandé pour optimiser votre
                     candidature.
                   </p>
                 </div>
               )}
 
-              {/* Step 3: Récapitulatif */}
+              {/* Step 3 */}
               {step === 3 && (
-                <div className="space-y-6">
-                  <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-                    <ClipboardList className="h-5 w-5 text-primary" />{" "}
+                <div className="space-y-4 sm:space-y-6">
+                  <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 flex items-center gap-2">
+                    <ClipboardList className="h-5 w-5 text-primary shrink-0" />{" "}
                     Récapitulatif
                   </h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {[
                       {
                         label: "Nom complet",
@@ -643,39 +641,63 @@ Ex : Stage en développement web`}
             </motion.div>
           </AnimatePresence>
 
-          {/* Navigation */}
-          <div className="flex justify-between mt-8 pt-6 border-t border-border">
-            <Button
-              variant="outline"
-              onClick={prevStep}
-              disabled={step === 0}
-              className="gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" /> Précédent
-            </Button>
+          {/* Navigation — FIXED responsive */}
+          <div className="mt-6 sm:mt-8 pt-5 sm:pt-6 border-t border-border">
             {step < 3 ? (
-              <Button
-                onClick={nextStep}
-                className="gap-2 bg-primary hover:bg-primary/90"
-              >
-                Suivant <ArrowRight className="h-4 w-4" />
-              </Button>
+              /* Étapes 0–2 : Précédent à gauche, Suivant à droite */
+              <div className="flex justify-between gap-3">
+                <Button
+                  variant="outline"
+                  onClick={prevStep}
+                  disabled={step === 0}
+                  className="gap-2"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  <span className="hidden xs:inline">Précédent</span>
+                </Button>
+                <Button
+                  onClick={nextStep}
+                  className="gap-2 bg-primary hover:bg-primary/90"
+                >
+                  <span>Suivant</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
             ) : (
-              <Button
-                onClick={handleSubmit(onSubmit)}
-                disabled={isSubmitting}
-                size="lg"
-                className="gap-2"
-                style={{
-                  background: "linear-gradient(135deg, #FF8200, #4CAF18)",
-                  border: "none",
-                }}
-              >
-                {isSubmitting
-                  ? "Envoi en cours..."
-                  : "Soumettre mon inscription"}
-                <CheckCircle2 className="h-4 w-4" />
-              </Button>
+              /* Étape 3 : Précédent + Soumettre en colonne sur mobile */
+              <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-between">
+                <Button
+                  variant="outline"
+                  onClick={prevStep}
+                  className="gap-2 w-full sm:w-auto"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Précédent
+                </Button>
+                <button
+                  onClick={handleSubmit(onSubmit)}
+                  disabled={isSubmitting}
+                  className="
+                    w-full sm:w-auto
+                    flex items-center justify-center gap-2
+                    px-6 py-3 rounded-xl
+                    font-semibold text-sm sm:text-base text-white
+                    transition-all duration-200
+                    disabled:opacity-60 disabled:cursor-not-allowed
+                    hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]
+                  "
+                  style={{
+                    background: "linear-gradient(135deg, #FF8200, #4CAF18)",
+                  }}
+                >
+                  <CheckCircle2 className="h-4 w-4 shrink-0" />
+                  <span>
+                    {isSubmitting
+                      ? "Envoi en cours..."
+                      : "Soumettre mon inscription"}
+                  </span>
+                </button>
+              </div>
             )}
           </div>
         </div>
