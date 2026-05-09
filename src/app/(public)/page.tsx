@@ -147,8 +147,8 @@ export default function HomePage() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="text-base sm:text-lg text-muted-foreground max-w-md border-l border-border pl-5 sm:pl-6"
             >
-              Rejoignez notre laboratoire d'innovation numérique. Boostez votre
-              employabilité, développez vos compétences, construisez votre
+              Rejoignez notre laboratoire d&apos;innovation numérique. Boostez
+              votre employabilité, développez vos compétences, construisez votre
               avenir.
             </motion.p>
 

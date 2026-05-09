@@ -147,8 +147,8 @@ export default function AdminsPage() {
       <Dialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Supprimer l'administrateur ?</DialogTitle>
-            <DialogDescription>Cette action est irréversible. L'admin perdra tout accès.</DialogDescription>
+            <DialogTitle>Supprimer l&apos;administrateur ?</DialogTitle>
+            <DialogDescription>Cette action est irréversible. L&apos;admin perdra tout accès.</DialogDescription>
           </DialogHeader>
           <div className="flex gap-3 mt-4">
             <Button variant="outline" onClick={() => setDeleteId(null)} className="flex-1">Annuler</Button>

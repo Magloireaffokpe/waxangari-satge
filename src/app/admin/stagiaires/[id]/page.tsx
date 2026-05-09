@@ -152,7 +152,7 @@ export default function StagiaireDetailPage() {
         <h3 className="font-semibold flex items-center gap-2"><Save className="h-4 w-4 text-primary" /> Gestion du dossier</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <Label>Statut d'avancement</Label>
+            <Label>Statut d&apos;avancement</Label>
             <Select value={statut} onValueChange={setStatut}>
               <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
               <SelectContent>

@@ -35,7 +35,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Vue d'ensemble</h1>
+        <h1 className="text-2xl font-bold">Vue d&apos;ensemble</h1>
         <p className="text-muted-foreground text-sm mt-0.5">Statistiques globales des stagiaires Waxangari Labs</p>
       </div>
 
@@ -71,7 +71,7 @@ export default function DashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
-              <GraduationCap className="h-4 w-4 text-primary" /> Top écoles d'origine
+              <GraduationCap className="h-4 w-4 text-primary" /> Top écoles d&apos;origine
             </CardTitle>
           </CardHeader>
           <CardContent>

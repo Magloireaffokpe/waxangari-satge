@@ -35,7 +35,7 @@ export default function LogsPage() {
   return (
     <div className="space-y-5 max-w-3xl">
       <div>
-        <h1 className="text-2xl font-bold">Journaux d'activité</h1>
+        <h1 className="text-2xl font-bold">Journaux d&apos;activité</h1>
         <p className="text-sm text-muted-foreground">{data.total} actions enregistrées</p>
       </div>
 

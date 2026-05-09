@@ -230,7 +230,7 @@ export default function FormulaireInscription() {
         <div className="text-center mb-8">
           <WaxangariLogo className="mx-auto" size="lg" />
           <h1 className="font-display text-3xl md:text-4xl mb-2">
-            Formulaire d'inscription
+            Formulaire d&apos;inscription
           </h1>
           <p className="text-muted-foreground">
             Rejoignez notre programme de stage en quelques étapes
@@ -432,7 +432,7 @@ export default function FormulaireInscription() {
                       )}
                     </div>
                     <div>
-                      <Label>Niveau d'étude</Label>
+                      <Label>Niveau d&apos;étude</Label>
                       <Input
                         {...register("niveauEtude")}
                         placeholder="Ex: Licence 3"
