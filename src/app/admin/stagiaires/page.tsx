@@ -11,6 +11,8 @@ import {
   ChevronLeft,
   ChevronRight,
   UserX,
+  FileSpreadsheet,
+  FileText,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,12 +32,93 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { formatDate } from "@/lib/utils";
 import Link from "next/link";
+
+// Export Excel sans dépendance externe — génère un vrai .xlsx via l'API
+async function exportData(format: "csv" | "xlsx", params: URLSearchParams) {
+  params.set("limit", "9999");
+  const res = await fetch(`/api/admin/stagiaires?${params}`);
+  const d = await res.json();
+  const rows: any[] = d.data;
+
+  if (format === "csv") {
+    const headers = [
+      "ID",
+      "Nom",
+      "Prénom",
+      "Email",
+      "Téléphone",
+      "École",
+      "Filière",
+      "Niveau",
+      "Type",
+      "Début",
+      "Fin",
+      "Statut",
+    ];
+    const csv = [
+      headers.join(","),
+      ...rows.map((r) =>
+        [
+          r.id,
+          r.nom,
+          r.prenom,
+          r.email,
+          r.telephone || "",
+          r.ecoleUniversite,
+          r.filiere,
+          r.niveauEtude || "",
+          r.typeStage,
+          formatDate(r.dateDebut),
+          formatDate(r.dateFin),
+          r.statutAvancement,
+        ]
+          .map((v) => `"${String(v).replace(/"/g, '""')}"`)
+          .join(","),
+      ),
+    ].join("\n");
+    const blob = new Blob(["\uFEFF" + csv], {
+      type: "text/csv;charset=utf-8;",
+    });
+    downloadBlob(blob, "stagiaires.csv");
+  }
+
+  if (format === "xlsx") {
+    // Construire un vrai fichier Excel via l'API dédiée
+    const exportRes = await fetch("/api/admin/export/xlsx", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ rows }),
+    });
+    if (!exportRes.ok) {
+      toast.error("Erreur export Excel");
+      return;
+    }
+    const blob = await exportRes.blob();
+    downloadBlob(blob, "stagiaires.xlsx");
+  }
+}
+
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 export default function StagiairesPage() {
   const [data, setData] = useState<any>({ data: [], total: 0, pages: 1 });
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState("");
@@ -43,27 +126,46 @@ export default function StagiairesPage() {
   const [typeStage, setTypeStage] = useState("");
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
+  const currentParams = useCallback(() => {
+    const params = new URLSearchParams({
+      page: String(page),
+      limit: String(limit),
+    });
+    if (search) params.set("search", search);
+    if (statut && statut !== "all") params.set("statut", statut);
+    if (typeStage && typeStage !== "all") params.set("typeStage", typeStage);
+    return params;
+  }, [page, limit, search, statut, typeStage]);
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({
-        page: String(page),
-        limit: String(limit),
-      });
-      if (search) params.set("search", search);
-      if (statut && statut !== "all") params.set("statut", statut);
-      if (typeStage && typeStage !== "all") params.set("typeStage", typeStage);
-      const res = await fetch(`/api/admin/stagiaires?${params}`);
-      const d = await res.json();
-      setData(d);
+      const res = await fetch(`/api/admin/stagiaires?${currentParams()}`);
+      setData(await res.json());
     } finally {
       setLoading(false);
     }
-  }, [page, limit, search, statut, typeStage]);
+  }, [currentParams]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  const handleExport = async (format: "csv" | "xlsx") => {
+    setExporting(true);
+    try {
+      const params = new URLSearchParams();
+      if (search) params.set("search", search);
+      if (statut && statut !== "all") params.set("statut", statut);
+      if (typeStage && typeStage !== "all") params.set("typeStage", typeStage);
+      await exportData(format, params);
+      toast.success(`Export ${format.toUpperCase()} lancé`);
+    } catch {
+      toast.error("Erreur lors de l'export");
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const toggleStatut = async (id: number, current: string) => {
     const next = current === "EN_COURS" ? "TERMINE" : "EN_COURS";
@@ -90,58 +192,6 @@ export default function StagiairesPage() {
     } else toast.error("Erreur");
   };
 
-  const exportCSV = async () => {
-    const params = new URLSearchParams({ limit: "9999" });
-    if (search) params.set("search", search);
-    if (statut && statut !== "all") params.set("statut", statut);
-    if (typeStage && typeStage !== "all") params.set("typeStage", typeStage);
-    const res = await fetch(`/api/admin/stagiaires?${params}`);
-    const d = await res.json();
-    const headers = [
-      "ID",
-      "Nom",
-      "Prénom",
-      "Email",
-      "Téléphone",
-      "École",
-      "Filière",
-      "Niveau",
-      "Type",
-      "Début",
-      "Fin",
-      "Statut",
-    ];
-    const csv = [
-      headers.join(","),
-      ...d.data.map((r: any) =>
-        [
-          r.id,
-          r.nom,
-          r.prenom,
-          r.email,
-          r.telephone || "",
-          r.ecoleUniversite,
-          r.filiere,
-          r.niveauEtude || "",
-          r.typeStage,
-          formatDate(r.dateDebut),
-          formatDate(r.dateFin),
-          r.statutAvancement,
-        ]
-          .map((v) => `"${v}"`)
-          .join(","),
-      ),
-    ].join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "stagiaires.csv";
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success("Export CSV lancé");
-  };
-
   return (
     <div className="space-y-4 sm:space-y-5">
       {/* En-tête */}
@@ -152,18 +202,43 @@ export default function StagiairesPage() {
             {data.total} stagiaire{data.total > 1 ? "s" : ""} au total
           </p>
         </div>
-        <Button
-          onClick={exportCSV}
-          variant="outline"
-          size="sm"
-          className="gap-2 shrink-0"
-        >
-          <Download className="h-4 w-4" />
-          <span className="hidden xs:inline">Exporter CSV</span>
-        </Button>
+
+        {/* Bouton export avec dropdown CSV / Excel */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={exporting}
+              className="gap-2 shrink-0"
+            >
+              <Download className="h-4 w-4" />
+              {exporting ? "Export..." : "Exporter"}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-44">
+            <DropdownMenuItem
+              onClick={() => handleExport("csv")}
+              className="gap-2 cursor-pointer"
+            >
+              <FileText className="h-4 w-4 text-muted-foreground" />
+              Exporter en CSV
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => handleExport("xlsx")}
+              className="gap-2 cursor-pointer"
+            >
+              <FileSpreadsheet
+                className="h-4 w-4"
+                style={{ color: "#217346" }}
+              />
+              Exporter en Excel
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
-      {/* Filtres — empilés sur mobile */}
+      {/* Filtres */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
         <div className="relative sm:col-span-2 lg:col-span-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -227,9 +302,9 @@ export default function StagiairesPage() {
         </Select>
       </div>
 
-      {/* Tableau — cards sur mobile, table sur desktop */}
+      {/* Tableau */}
       <div className="rounded-2xl border border-border overflow-hidden">
-        {/* Vue mobile : cards empilées */}
+        {/* Vue mobile : cards */}
         <div className="sm:hidden divide-y divide-border">
           {loading ? (
             [...Array(4)].map((_, i) => (
@@ -245,24 +320,19 @@ export default function StagiairesPage() {
               <p className="font-medium text-muted-foreground text-sm">
                 Aucun stagiaire trouvé
               </p>
-              <p className="text-xs text-muted-foreground/60 mt-1">
-                Modifiez vos filtres
-              </p>
             </div>
           ) : (
             data.data.map((s: any) => (
               <div key={s.id} className="p-4 space-y-2.5">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="font-semibold text-sm truncate">
+                    <p className="font-semibold text-sm">
                       {s.prenom} {s.nom}
                     </p>
                     <p className="text-xs text-muted-foreground truncate">
                       {s.ecoleUniversite}
                     </p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {s.filiere}
-                    </p>
+                    <p className="text-xs text-muted-foreground">{s.filiere}</p>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     <Link href={`/admin/stagiaires/${s.id}`}>
@@ -315,7 +385,7 @@ export default function StagiairesPage() {
           )}
         </div>
 
-        {/* Vue desktop : table classique */}
+        {/* Vue desktop : table */}
         <div className="hidden sm:block overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-muted/50">
@@ -355,9 +425,6 @@ export default function StagiairesPage() {
                     <UserX className="h-12 w-12 mx-auto text-muted-foreground/40 mb-3" />
                     <p className="font-medium text-muted-foreground">
                       Aucun stagiaire trouvé
-                    </p>
-                    <p className="text-sm text-muted-foreground/60 mt-1">
-                      Modifiez vos filtres ou attendez de nouvelles inscriptions
                     </p>
                   </td>
                 </tr>
@@ -471,14 +538,12 @@ export default function StagiairesPage() {
         </div>
       </div>
 
-      {/* Delete dialog */}
       <Dialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Confirmer la suppression</DialogTitle>
             <DialogDescription>
-              Cette action est irréversible. Le stagiaire sera définitivement
-              supprimé.
+              Cette action est irréversible.
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col sm:flex-row gap-3 mt-4">
