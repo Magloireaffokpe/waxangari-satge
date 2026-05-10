@@ -215,10 +215,6 @@ export default function FormulaireInscription() {
           <h2 className="font-display text-3xl sm:text-4xl mb-4">
             Inscription envoyée !
           </h2>
-          <p className="text-muted-foreground mb-8 text-sm sm:text-base">
-            Notre équipe examinera votre dossier et vous contactera très
-            prochainement.
-          </p>
           <WaxangariLogo className="mx-auto" size="lg" />
         </motion.div>
       </div>
