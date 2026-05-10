@@ -56,7 +56,13 @@ export async function POST(req: NextRequest) {
 
   const xlsx = buildXlsx(headers, dataRows);
 
-  return new NextResponse(xlsx, {
+  // Blob est le seul type accepté par NextResponse dans Next.js 14 App Router
+  const blob = new Blob([xlsx.buffer as ArrayBuffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+
+  return new NextResponse(blob, {
+    status: 200,
     headers: {
       "Content-Type":
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -65,9 +71,9 @@ export async function POST(req: NextRequest) {
   });
 }
 
-// ── Builder XLSX (OpenXML + ZIP) — zéro dépendance ─────────────────────────
+// ── Builder XLSX (OpenXML + ZIP) — retourne Uint8Array ─────────────────────
 
-function buildXlsx(headers: string[], rows: any[][]): Buffer {
+function buildXlsx(headers: string[], rows: any[][]): Uint8Array {
   const escXml = (v: any) =>
     String(v ?? "")
       .replace(/&/g, "&amp;")
@@ -75,9 +81,9 @@ function buildXlsx(headers: string[], rows: any[][]): Buffer {
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
 
-  // Shared strings
+  // Shared strings registry
   const strings: string[] = [];
-  const si = (s: string) => {
+  const si = (s: string): number => {
     const e = escXml(s);
     let i = strings.indexOf(e);
     if (i < 0) {
@@ -87,7 +93,7 @@ function buildXlsx(headers: string[], rows: any[][]): Buffer {
     return i;
   };
 
-  const colLetter = (n: number) => {
+  const colLetter = (n: number): string => {
     let s = "";
     n++;
     while (n > 0) {
@@ -107,7 +113,7 @@ function buildXlsx(headers: string[], rows: any[][]): Buffer {
             if (typeof cell === "number")
               return `<c r="${ref}" t="n"><v>${cell}</v></c>`;
             const style = ri === 0 ? ` s="1"` : "";
-            return `<c r="${ref}" t="s"${style}><v>${si(String(cell))}</v></c>`;
+            return `<c r="${ref}" t="s"${style}><v>${si(String(cell ?? ""))}</v></c>`;
           })
           .join("")}</row>`,
     )
@@ -183,10 +189,13 @@ ${strings.map((s) => `<si><t xml:space="preserve">${s}</t></si>`).join("")}
   return buildZip(files);
 }
 
-function buildZip(files: Record<string, string>): Buffer {
+// ── ZIP minimal — retourne Uint8Array (pas Buffer) ─────────────────────────
+
+function buildZip(files: Record<string, string>): Uint8Array {
   const enc = new TextEncoder();
 
-  const makeCrcTable = () => {
+  // Table CRC32
+  const CRC_TABLE = (() => {
     const t = new Uint32Array(256);
     for (let i = 0; i < 256; i++) {
       let c = i;
@@ -194,88 +203,107 @@ function buildZip(files: Record<string, string>): Buffer {
       t[i] = c;
     }
     return t;
-  };
-  const CRC_TABLE = makeCrcTable();
+  })();
 
-  const crc32 = (data: Buffer) => {
+  const crc32 = (data: Uint8Array): number => {
     let crc = 0xffffffff;
     for (const b of data) crc = (crc >>> 8) ^ CRC_TABLE[(crc ^ b) & 0xff];
     return (crc ^ 0xffffffff) >>> 0;
   };
 
-  const u16 = (n: number) => {
-    const b = Buffer.alloc(2);
-    b.writeUInt16LE(n & 0xffff, 0);
+  // Helpers pour écrire en little-endian dans un Uint8Array
+  const u16 = (n: number): Uint8Array => {
+    const b = new Uint8Array(2);
+    b[0] = n & 0xff;
+    b[1] = (n >> 8) & 0xff;
     return b;
   };
-  const u32 = (n: number) => {
-    const b = Buffer.alloc(4);
-    b.writeUInt32LE(n >>> 0, 0);
+  const u32 = (n: number): Uint8Array => {
+    const v = n >>> 0;
+    const b = new Uint8Array(4);
+    b[0] = v & 0xff;
+    b[1] = (v >> 8) & 0xff;
+    b[2] = (v >> 16) & 0xff;
+    b[3] = (v >> 24) & 0xff;
     return b;
   };
 
-  const localParts: Buffer[] = [];
-  const central: Buffer[] = [];
+  const concat = (...parts: Uint8Array[]): Uint8Array => {
+    const total = parts.reduce((s, p) => s + p.length, 0);
+    const out = new Uint8Array(total);
+    let off = 0;
+    for (const p of parts) {
+      out.set(p, off);
+      off += p.length;
+    }
+    return out;
+  };
+
+  const sig = (a: number, b: number, c: number, d: number) =>
+    new Uint8Array([a, b, c, d]);
+
+  const localParts: Uint8Array[] = [];
+  const centralParts: Uint8Array[] = [];
   let offset = 0;
 
   for (const [name, content] of Object.entries(files)) {
-    const data = Buffer.from(enc.encode(content));
-    const nameBytes = Buffer.from(name, "utf8");
+    const data = enc.encode(content);
+    const nameBytes = enc.encode(name);
     const crc = crc32(data);
+    const size = data.length;
 
-    const local = Buffer.concat([
-      Buffer.from([0x50, 0x4b, 0x03, 0x04]),
+    const local = concat(
+      sig(0x50, 0x4b, 0x03, 0x04),
+      u16(20),
+      u16(0),
+      u16(0), // version needed, flags, compression (store=0)
+      u16(0),
+      u16(0), // mod time, mod date
+      u32(crc),
+      u32(size),
+      u32(size), // compressed = uncompressed (store)
+      u16(nameBytes.length),
+      u16(0),
+      nameBytes,
+    );
+
+    const central = concat(
+      sig(0x50, 0x4b, 0x01, 0x02),
+      u16(20),
       u16(20),
       u16(0),
       u16(0),
       u16(0),
       u16(0),
       u32(crc),
-      u32(data.length),
-      u32(data.length),
+      u32(size),
+      u32(size),
       u16(nameBytes.length),
       u16(0),
+      u16(0),
+      u16(0),
+      u16(0),
+      u32(0),
+      u32(offset),
       nameBytes,
-    ]);
-
-    central.push(
-      Buffer.concat([
-        Buffer.from([0x50, 0x4b, 0x01, 0x02]),
-        u16(20),
-        u16(20),
-        u16(0),
-        u16(0),
-        u16(0),
-        u16(0),
-        u32(crc),
-        u32(data.length),
-        u32(data.length),
-        u16(nameBytes.length),
-        u16(0),
-        u16(0),
-        u16(0),
-        u16(0),
-        u32(0),
-        u32(offset),
-        nameBytes,
-      ]),
     );
 
     localParts.push(local, data);
-    offset += local.length + data.length;
+    centralParts.push(central);
+    offset += local.length + size;
   }
 
-  const centralBuf = Buffer.concat(central);
-  const eocd = Buffer.concat([
-    Buffer.from([0x50, 0x4b, 0x05, 0x06]),
+  const centralBuf = concat(...centralParts);
+  const eocd = concat(
+    sig(0x50, 0x4b, 0x05, 0x06),
     u16(0),
     u16(0),
-    u16(central.length),
-    u16(central.length),
+    u16(centralParts.length),
+    u16(centralParts.length),
     u32(centralBuf.length),
     u32(offset),
     u16(0),
-  ]);
+  );
 
-  return Buffer.concat([...localParts, centralBuf, eocd]);
+  return concat(...localParts, centralBuf, eocd);
 }
