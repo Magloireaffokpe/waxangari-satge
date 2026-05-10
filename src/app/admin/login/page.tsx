@@ -96,7 +96,7 @@ export default function LoginPage() {
                 id="email"
                 {...register("email")}
                 type="email"
-                placeholder="admin@waxangari.com"
+                placeholder="email@gmail.com"
                 className="mt-1.5"
                 autoComplete="email"
                 disabled={loading}
