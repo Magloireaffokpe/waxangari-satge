@@ -110,3 +110,22 @@ Puis configurez `STORAGE_TYPE=vercel-blob` et `BLOB_READ_WRITE_TOKEN`.
 vercel deploy
 ```
 Ajoutez les variables d'environnement dans le dashboard Vercel.
+
+<!-- nouveau-pc:debut -->
+## Installer sur un nouveau PC
+
+**Prérequis :** Git et Node.js 20 ou plus. La base est hébergée sur Neon.
+
+```bash
+git clone git@github.com:Magloireaffokpe/waxangari-satge.git waxangari-labs
+cd waxangari-labs
+npm install
+cp .env.example .env         # puis remplir les valeurs ; Prisma lit ce fichier
+npx prisma generate
+npm run dev                  # http://localhost:3000
+```
+
+Avec une base neuve, lancer aussi `npx prisma migrate deploy`. Avec la base Neon existante, ne pas lancer `prisma migrate dev` : la base est déjà à jour.
+
+**À recopier à la main (hors Git) :** `.env`.
+<!-- nouveau-pc:fin -->
